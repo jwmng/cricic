@@ -67,6 +67,9 @@ The following happens:
   operations and the current commit the server is on.
 - `cricic remove`: Removes all data related to cricic from the repository
 
+Both commands should be run in a cricic reposistory, or supply a directory as
+their first argument.
+
 ### Specifics
 
 When using `init`, two git hooks (`post-receive` and `pre-receive`) are
@@ -98,28 +101,31 @@ The global configuration (`~/.config/cricic`) file contains defaults that can
 be overridden on a per-repository basis using the local config file.
 By default, it looks like this:
 
-    [general]
-    ; Where files are stored, it is best to leave this default.
-    ; these paths are relative to the cricic file in the repository
-    work_dir = ./files
-    logfile = ./log
-    statefile = ./state
-    buildfile = ./buildfile
+```ini
+[general]
+; Where files are stored, it is best to leave this default.
+; these paths are relative to the cricic file in the repository
+repo_dir = /repo
+work_dir = ./files
+logfile = ./log
+statefile = ./state
+buildfile = ./buildfile
 
-    ; These are used to generate the `git remote add` command
-    remote_name = cricic
-    hostname = user@serv
+; These are used to generate the `git remote add` command
+remote_name = cricic
+hostname = user@serv
 
-    ; Pushes to branches other than the branch configured here will be rejected
-    branch = dev
+; Pushes to branches other than the branch configured here will be rejected
+branch = dev
 
-    [test]
-    targets = preprocess
+[test]
+targets = preprocess
 
-    [build]
-    targets = test build deploy
+[build]
+targets = test build deploy
+```
 
-Config options can be overriden 
+Config options can be overriden in the local (`/repo/cricic/config`) file.
 
 ### Buildfile
 
@@ -127,20 +133,21 @@ The build file defines all build operations.
 By default, the file contains almost nothing, and it should be configured to
 suit your needs:
 
-    .PHONY: preprocess test build deploy
+```make
+.PHONY: preprocess test build deploy
 
-    preprocess:
-        echo 'Accepted commit'
+preprocess:
+    echo 'Accepted commit'
 
-    test:
-        echo 'Done building'
+test:
+    echo 'Done building'
 
-    build:
-        echo 'Done preparing'
+build:
+    echo 'Done preparing'
 
-
-    deploy:
-        echo 'Done deploying'
+deploy:
+    echo 'Done deploying'
+```
 
 #### Example
 
@@ -154,21 +161,24 @@ Let's say we want the CI to do the following things:
 4. Move our code to the `/var/www/app` directory
 
 Our buildfile contains the following:
+```make
 
-    .PHONY: preprocess test build deploy
+.PHONY: preprocess test build deploy
 
-    HOUR = $(shell date +%H)
+HOUR = $(shell date +%H)
 
-    preprocess:
-        if [ ${HOUR} -lt 16 ] && [ ${HOUR} -gt 8 ]; then\
-            echo 'ERROR: You cannot commit during office hours'; exit 1;\
-        fi
+preprocess:
+    if [ ${HOUR} -lt 16 ] && [ ${HOUR} -gt 8 ]; then\
+        echo 'ERROR: You cannot commit during office hours'; exit 1;\
+    fi
 
-    test:
-        ./env/bin/python -m unittest discover
+test:
+    ./env/bin/python -m unittest discover
 
-    build:
-        ./env/bin/pip install -r requirements.txt
+build:
+    ./env/bin/pip install -r requirements.txt
 
-    deploy:
-        rsync -r --delete . /var/www/myproject
+deploy:
+    rsync -r --delete . /var/www/myproject
+
+```
