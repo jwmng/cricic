@@ -1,0 +1,30 @@
+# Compiled with svgy
+
+obj
+    name overlay_circle
+    type circle
+    radius 15
+    fill #000000
+
+
+# Background
+circle
+    center 50 50
+    radius 50
+    fill #000000
+
+# Outer C
+circle
+    center 35 50
+    radius 20
+    fill #ffffff
+
+# Outer I
+rect
+    x 55
+    y 30
+    w 20
+    h 40
+
+overlay_circle center 45 50
+overlay_circle center 85 50
