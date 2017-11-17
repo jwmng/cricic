@@ -118,10 +118,10 @@ hostname = user@serv
 ; Pushes to branches other than the branch configured here will be rejected
 branch = dev
 
-[test]
+[pre]
 targets = preprocess
 
-[build]
+[post]
 targets = test build deploy
 ```
 
@@ -130,6 +130,10 @@ Config options can be overriden in the local (`/repo/cricic/config`) file.
 ### Buildfile
 
 The build file defines all build operations.
+To update the buildfile, just add a `.cricic` file to the repository containing
+the buildfile contents.
+It will be automatically copied to `/repo/cricic/buildfile` and will not be
+present in the deployed file (as to not pollute served directories).
 By default, the file contains almost nothing, and it should be configured to
 suit your needs:
 
