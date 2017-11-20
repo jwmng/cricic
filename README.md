@@ -73,7 +73,7 @@ their first argument.
 ### Specifics
 
 When using `init`, two git hooks (`post-receive` and `pre-receive`) are
-symlinked to the cricic scripts.
+set to run the cricic scripts.
 These scripts run the `make` targets configured in 
 `/repo/myproject/cricic/buildfile`.
 The `post-receive` hook runs in the `/repo/myproject/cricic/files` folder which
@@ -85,8 +85,7 @@ The make targets are:
 - `post-receive` runs (in that order) `make test`, `make build` and `make
   deploy`
 
-Before `post-receive` runs anything, it checks out the files to the `work_dir`,
-which it will delete when it is done.
+Before `post-receive` runs anything, it checks out the files to the `work_dir`.
 Relevant data is logged to `~/myproject/cricic/log`, and information about the
 current branch/commit is saved to `~/myproject/cricic/state`.
 
@@ -95,37 +94,48 @@ current branch/commit is saved to `~/myproject/cricic/state`.
 All configuration files use inifile formatting.
 The build file ~~looks like~~ _is_ a Makefile.
 
-### Settings
+### Global settings
 
-The global configuration (`~/.config/cricic`) file contains defaults that can 
-be overridden on a per-repository basis using the local config file.
+The global configuration (`~/.config/cricic/config.ini`) file contains defaults 
+that can be overridden on a per-repository basis using the local config file.
 By default, it looks like this:
 
 ```ini
 [general]
-; Where files are stored, it is best to leave this default.
-; these paths are relative to the cricic file in the repository
-repo_dir = /repo
-work_dir = ./files
-logfile = ./log
-statefile = ./state
-buildfile = ./buildfile
-
-; These are used to generate the `git remote add` command
+; These settings are used to generate the 'git add' URL
 remote_name = cricic
 hostname = user@serv
 
-; Pushes to branches other than the branch configured here will be rejected
+; Branch and location of the buildfile.
+; Note that buildfile location is relative to the repository root
 branch = dev
+buildfile = cricic/buildfile
 
 [pre]
+; Make targets
 targets = preprocess
+; Decides if `make` should echo its commands
+silent = False
 
 [post]
 targets = test build deploy
+silent = True
 ```
 
-Config options can be overriden in the local (`/repo/cricic/config`) file.
+Config options can be overriden in the local (`/repo/cricic/config.ini`) file.
+
+### Local settings
+
+The local config file (`/repo/cricic/config.ini`) can override all config
+options shown above, and has an additional `repository` section:
+
+```ini
+[repository]
+deploy_dir = /var/www/myproject
+```
+
+The `deploy_dir` is the directory where files will be put before the
+`post-receive` hook runs.
 
 ### Buildfile
 
@@ -141,16 +151,16 @@ suit your needs:
 .PHONY: preprocess test build deploy
 
 preprocess:
-    echo 'Accepted commit'
+	echo 'Accepted commit'
 
 test:
-    echo 'Done building'
+	echo 'Tests passed'
 
 build:
-    echo 'Done preparing'
+	echo 'Done building'
 
 deploy:
-    echo 'Done deploying'
+	echo 'Done deploying'
 ```
 
 #### Example
@@ -183,6 +193,5 @@ build:
     ./env/bin/pip install -r requirements.txt
 
 deploy:
-    rsync -r --delete . /var/www/myproject
-
+    rsync -r --delete . /var/www/app
 ```

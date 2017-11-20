@@ -1,0 +1,13 @@
+.PHONY: preprocess test build deploy
+
+preprocess:
+	echo 'Accepted commit'
+
+test:
+	echo 'Tests passed'
+
+build:
+	echo 'Done building'
+
+deploy:
+	echo 'Done deploying'
