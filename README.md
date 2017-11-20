@@ -10,6 +10,10 @@ One small python program to handle your CI needs, without being intrusive.
 Easy to use, and with as little as possible dependencies, as usual.
 Cricic works with `git` for pushing code and `make` for the intermediate steps.
 
+## Status
+
+Many features missing, under heavy development
+
 ## Usage
 
 ### Quick instructions
