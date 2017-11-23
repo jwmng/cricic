@@ -5,8 +5,9 @@ CONF = ~/.config/cricic
 TARGET = $(PREFIX)/share/cricic
 BIN_DIR = $(PREFIX)/bin
 
-clean:
+uninstall:
 	rm -rf $(TARGET)
+	rm -rf $(CONF)
 	rm -f $(BIN_DIR)/cricic
 
 config:
@@ -14,10 +15,13 @@ config:
 	mkdir $(CONF)
 	cp ./conf/* $(CONF)
 
-install: clean config
+clean:
+	rm -rf cricic/__pycache__
+
+install: uninstall config
 	mkdir $(TARGET)
-	cp cricic/* $(TARGET)
-	ln -s $(TARGET)/__main__.py $(BIN_DIR)/cricic
+	cp -r * $(TARGET)
+	ln -s $(TARGET)/cricic.sh $(BIN_DIR)/cricic
 
 test:
 	rm -rf test/repo1
