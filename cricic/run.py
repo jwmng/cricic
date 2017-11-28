@@ -2,15 +2,14 @@
 Cricic CLI functions
 """
 
-import sys
 import subprocess as sp
 from configparser import ConfigParser
 from pathlib import Path
 
 SHELL = '#!/bin/sh\n'
 HOOKS = ('pre-receive', 'post-receive')
-CRICIC_ROOT = Path('.').resolve()
-CONF_ROOT = CRICIC_ROOT / 'conf'
+CRICIC_ROOT = Path(__file__).parents[1].resolve()
+CONF_ROOT = CRICIC_ROOT / 'config'
 HOOK_SCRIPT = (CRICIC_ROOT / 'cricic.sh')
 
 
@@ -63,6 +62,7 @@ def init(repository, **_):
     # Show info
     confp = ConfigParser()
     confp.read(CONF_ROOT / 'config.ini')
+    print(CONF_ROOT/'config.ini')
     print("To add repository:\n"
           "\tgit remote add %s %s:%s" % (confp.get('general', 'remote_name'),
                                          confp.get('general', 'hostname'),
@@ -79,9 +79,13 @@ def info(repository, **kwargs):
 
 
 def remove(repository, **kwargs):
-    remove_confirm = input("Remove repository along with cricic files? [y/n] ")
+    remove_confirm = input("Remove cricic files? [y/n] ")
     remove_repo = remove_confirm.lower() in ('y', 'yes')
+    if not remove_repo:
+        return
 
-    [(repository / hook).unlink() for hook in HOOKS]
-    [f.unlink() for f in CONF_ROOT.glob('*')]
-    CONF_ROOT.rmdir()
+    repo_conf_dir = repository / 'cricic'
+
+    [(repository / 'hooks' / hook).unlink() for hook in HOOKS]
+    [f.unlink() for f in repo_conf_dir.glob('*')]
+    repo_conf_dir.rmdir()

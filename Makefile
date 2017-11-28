@@ -1,27 +1,30 @@
 .PHONY: install config clean test
 
-PREFIX = ~/.local
-CONF = ~/.config/cricic
-TARGET = $(PREFIX)/share/cricic
-BIN_DIR = $(PREFIX)/bin
+CONF_PREFIX = ~/.config
+CONF = $(CONF_PREFIX)/cricic
+ENV_NAME = env
+
+env:
+	virtualenv $(ENV_NAME)
+	echo 'Run `source $(ENV_NAME)` to activate env'
 
 uninstall:
-	rm -rf $(TARGET)
 	rm -rf $(CONF)
-	rm -f $(BIN_DIR)/cricic
 
 config:
-	rm -rf $(CONF)
-	mkdir $(CONF)
-	cp ./conf/* $(CONF)
+	echo "Building config file"
+	cat conf/config.ini.sample | sed \
+		-e 's/&user/$(shell whoami)/' \
+		-e 's/&serv/$(shell hostname)/' > conf/config.ini
 
 clean:
-	rm -rf cricic/__pycache__
+	python setup.py clean
+	rm -f conf/config.ini
+	rm -rf Cricic.egg-info
+	rm -rf $(CONF)
 
-install: uninstall config
-	mkdir $(TARGET)
-	cp -r * $(TARGET)
-	ln -s $(TARGET)/cricic.sh $(BIN_DIR)/cricic
+install: config
+	python setup.py install
 
 test:
 	rm -rf test/repo1

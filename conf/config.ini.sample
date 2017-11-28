@@ -1,0 +1,19 @@
+[general]
+; These settings are used to generate the 'git add' URL
+remote_name = cricic
+hostname = &user@&serv
+
+; Branch and location of the buildfile.
+; Note that buildfile location is relative to the repository root
+branch = dev
+buildfile = cricic/buildfile
+
+[pre]
+; Make targets
+targets = preprocess
+; Decides if `make` should echo its commands
+silent = False
+
+[post]
+targets = test build deploy
+silent = True

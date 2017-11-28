@@ -14,6 +14,22 @@ Cricic works with `git` for pushing code and `make` for the intermediate steps.
 
 Many features missing, under heavy development
 
+## Installation
+
+Recommended way: via `make`
+
+```bash
+$ git clone https://github.com/jwmng/cricic
+$ make install
+```
+
+You can also call `pip` it manually for some more flexibility:
+
+```bash
+$ git clone https://github.com/jwmng/cricic
+$ pip install -e cricic
+```
+
 ## Usage
 
 ### Quick instructions
