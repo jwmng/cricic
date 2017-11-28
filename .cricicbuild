@@ -1,7 +1,7 @@
 .PHONY: build
 
 pre:
-    echo "PRE"
+	echo "PRE"
 
 build:
-    echo "BUILD"
+	echo "BUILD"
