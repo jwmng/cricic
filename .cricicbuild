@@ -1,4 +1,7 @@
 .PHONY: deploy
 
+pre:
+    echo "A"
+
 deploy:
     echo "BUILD"

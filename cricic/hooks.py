@@ -113,6 +113,7 @@ def post_receive(repository, config, **_):
             'checkout', '-q', '-f', str(confp.get('general', 'branch'))))
 
     # Copy new buildfile
+    print("Checking for buildfile updat")
     buildfile_update = (work_dir / '.cricicbuild')
     if buildfile_update.is_file():
         print("Updating buildfile")
