@@ -5,3 +5,9 @@ preprocess:
 
 build:
 	echo "BUILD COMPLETE"
+
+test:
+    echo "TESTED"
+
+deploy:
+    echo "DEPLOYED"
