@@ -39,11 +39,10 @@ user@server:/repo $ cricic myproject init
 
 Initialised an empty repo in /repo/myproject
 To add the remote locally:
-    git remote add cricic user@serv:~/myproject
+    git remote add cricic user@serv:/repo/myproject
 
 To push to the repository:
     git push cricic dev
-
 ```
 
 2. Add the remote locally:
@@ -177,7 +176,7 @@ deploy:
 To update the buildfile, just add a `.cricic` file to the repository containing
 the buildfile contents.
 It will be automatically copied to `/repo/cricic/buildfile` and will not be
-present in the deployed file (as to not pollute served directories).
+present in the working directory (as to not pollute served directories).
 
 ## Applied example
 
