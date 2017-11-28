@@ -34,22 +34,29 @@ custom location specified using the `-c` option.
 
 1. Initialise a receiving repository on your server:
 
-    user@server:/repo $ cricic myproject init
+```
+user@server:/repo $ cricic myproject init
 
-    Initialised an empty repo in /repo/myproject
-    To add the remote locally:
-        git remote add cricic user@serv:~/myproject
+Initialised an empty repo in /repo/myproject
+To add the remote locally:
+    git remote add cricic user@serv:~/myproject
 
-    To push to the repository:
-        git push cricic dev
+To push to the repository:
+    git push cricic dev
+
+```
 
 2. Add the remote locally:
 
-    user@work:~/myproject $ git remote add serv user@serv:/repo/myproject
+```
+user@work:~/myproject $ git remote add serv user@serv:/repo/myproject
+```
 
 3. Push some code:
 
-    user@work:~/myproject $ git push serv dev
+```
+user@work:~/myproject $ git push serv dev
+```
 
 4. Watch magic happen:
 
