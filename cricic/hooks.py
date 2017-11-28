@@ -11,18 +11,22 @@ import subprocess as sp
 from configparser import ConfigParser
 from pathlib import Path
 
+from cricic.constants import CONF_LOCATIONS
+
 
 def _leftpad(raw, chars='\t'):
     return '\n'.join(chars + line for line in raw.splitlines())
 
 
-def _get_config(repository, global_config):
-    """ Read global config, then override with local config, return ConfigP """
+def _get_config(repository, config):
+    """ Read global configs, then override with local config """
     confp = ConfigParser()
-    global_config = Path(global_config).expanduser()
+    for config_path in CONF_LOCATIONS:
+        confp.read(config_path / 'config.ini')
+
     local_config = Path(repository) / 'cricic/config.ini'
-    confp.read(global_config)
     confp.read(local_config)
+    confp.read(config)
     return confp
 
 
@@ -90,8 +94,13 @@ def post_receive(repository, config, **_):
     """ Runs after receiving code """
     confp = _get_config(repository, config)
 
-    work_dir = Path(confp.get('repository',
-                              'work_dir')).expanduser().resolve()
+    work_dir = Path(confp.get('repository', 'work_dir'))
+    if not work_dir.is_absolute():
+        work_dir = (repository / confp.get('repository', 'work_dir'))
+    else:
+        work_dir = work_dir.expanduser()
+
+    work_dir = work_dir.resolve()
 
     # Checkout the files in the work dir
     if not work_dir.is_dir():

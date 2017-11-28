@@ -38,7 +38,7 @@ def setup_parser():
     aparser.add_argument(
         '-c',
         '--config',
-        help="Global configuration file location",
+        help="Configuration file location",
         default='~/.config/cricic/config.ini'
         )
 

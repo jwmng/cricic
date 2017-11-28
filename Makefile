@@ -20,11 +20,13 @@ config:
 clean:
 	python setup.py clean
 	rm -f conf/config.ini
+	rm -rf build dist
 	rm -rf Cricic.egg-info
 	rm -rf $(CONF)
 
 install: config
 	python setup.py install
+	cp -r conf $(CONF)
 
 test:
 	rm -rf test/repo1

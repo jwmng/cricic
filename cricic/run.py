@@ -6,11 +6,10 @@ import subprocess as sp
 from configparser import ConfigParser
 from pathlib import Path
 
+from cricic.constants import CRICIC_ROOT, CONF_ROOT, CONF_LOCATIONS
+
 SHELL = '#!/bin/sh\n'
 HOOKS = ('pre-receive', 'post-receive')
-CRICIC_ROOT = Path(__file__).parents[1].resolve()
-CONF_ROOT = CRICIC_ROOT / 'config'
-HOOK_SCRIPT = (CRICIC_ROOT / 'cricic.sh')
 
 
 class RunError(RuntimeError):
@@ -38,12 +37,15 @@ def init(repository, **_):
     # Add hooks
     for hook in HOOKS:
         hook_cmd = SHELL + 'cd %s\n' % str(CRICIC_ROOT)
-        hook_cmd = hook_cmd + (' '.join([str(HOOK_SCRIPT),
+        hook_cmd = hook_cmd + (' '.join(['python -m cricic',
                                          str(repository.resolve()),
                                          '@'+hook]))
 
-        with open((repository / 'hooks' / hook), 'a+') as hook_file:
+        hookfile_path = repository / 'hooks' / hook
+        with open(hookfile_path, 'a+') as hook_file:
             hook_file.write(hook_cmd)
+
+        hookfile_path.chmod(0o744)
 
     # Create dir
     repo_conf_dir = repository / 'cricic'
@@ -56,13 +58,19 @@ def init(repository, **_):
 
     # Add empty config file
     local_conf_path = repo_conf_dir / 'config.ini'
-    local_conf_path.touch()
+    local_conf_parser = ConfigParser()
+    local_conf_parser.add_section('repository')
+    local_conf_parser.set('repository', 'work_dir', './files')
+    with open(local_conf_path, 'a+') as local_conf_file:
+        local_conf_parser.write(local_conf_file)
+
     print("Initialised an empty cricic repository in %s" % str(repository))
 
     # Show info
     confp = ConfigParser()
-    confp.read(CONF_ROOT / 'config.ini')
-    print(CONF_ROOT/'config.ini')
+    for conf_path in CONF_LOCATIONS:
+        confp.read(conf_path/'config.ini')
+
     print("To add repository:\n"
           "\tgit remote add %s %s:%s" % (confp.get('general', 'remote_name'),
                                          confp.get('general', 'hostname'),
