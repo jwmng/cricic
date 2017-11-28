@@ -12,7 +12,7 @@ Cricic works with `git` for pushing code and `make` for the intermediate steps.
 
 ## Status
 
-Many features missing, under heavy development
+Many features missing, under heavy development.
 
 ## Installation
 
@@ -67,7 +67,7 @@ And of course, all of this is [configurable](#Configuration)
 
 ### Other commands
 
-- `cricic log` shows the result of the last few CI operations and the current
+- `cricic info` shows the result of the last few CI operations and the current
   commit the server is on.
 - `cricic remove` removes all data related to cricic from the repository
 
@@ -173,8 +173,8 @@ deploy:
 
 #### Updating the buildfile
 
-To update the buildfile, just add a `.cricic` file to the repository containing
-the buildfile contents.
+To update the buildfile, just add a `.cricicbuild` file to the repository 
+containing the buildfile contents.
 It will be automatically copied to `/repo/cricic/buildfile` and will not be
 present in the working directory (as to not pollute served directories).
 
