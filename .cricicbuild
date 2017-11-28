@@ -1,7 +1,7 @@
 .PHONY: build
 
 preprocess:
-	echo "PRE"
+	echo "PRE COMPLETE"
 
 build:
-	echo "BUILD"
+	echo "BUILD COMPLETE"
