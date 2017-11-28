@@ -23,87 +23,64 @@ $ git clone https://github.com/jwmng/cricic
 $ make install
 ```
 
-You can also call `pip` it manually for some more flexibility:
-
-```bash
-$ git clone https://github.com/jwmng/cricic
-$ pip install -e cricic
-```
+By default, this will copy the config directory to `~/.config/cricic`.
+You can change this by overriding the `CONF_ROOT` variable, however, the program
+will only search in a few locations (see [Configuration](#Configuration)) or a
+custom location specified using the `-c` option.
 
 ## Usage
 
 ### Quick instructions
 
-Assume a code project called `myproject`, a server called `serv` and a
-workstation called `work`.
-The receiving repositories on `serv` are in `/repo`
-The folder `~/myproject` on `work` contains is the working directory and git
-repository.
+1. Initialise a receiving repository on your server:
 
-First, initialise the receiving repository:
-
-    user@serv:~ $ cricic init myproject
+    user@server:/repo $ cricic myproject init
 
     Initialised an empty repo in /repo/myproject
     To add the remote locally:
-        git add serv user@serv:~/myproject
+        git remote add cricic user@serv:~/myproject
 
     To push to the repository:
-        git push serv dev
+        git push cricic dev
 
-The following things happen:
-
-1. An empty bare git repository is initialised in the folder `myproject`
-2. The git hooks (in `/repo/myproject/hooks`) are linked to the cricic script
-3. The default repository config is added in `/repo/myproject/cricic/config`
-4. Instructions are displayed for locally adding the remote
-
-All repository-related files live in `/repo/myproject/cricic`, this includes the
-settings, logs, etc
-
-Note that the name of the remote is here equal to the hostname of the server, 
-and the branch is by default `dev`.
-These options are both configurable.
-
-After initalising, add the remote locally:
+2. Add the remote locally:
 
     user@work:~/myproject $ git remote add serv user@serv:/repo/myproject
 
-And push some code:
+3. Push some code:
 
     user@work:~/myproject $ git push serv dev
 
-The following happens:
+4. Watch magic happen:
 
-1. The pre-receive hook is run (`preprocess` by default), and the push is
-   rejected if this fails
-2. The files are received
-3. The post-receive is run, this will run the `test`, `build` and `deploy`
-   targets and complain if anything fails
+  - `make preprocess` is run and the push is rejected if this fails
+  - The files are received, and `make test`, `make build` and `make deploy` are
+    run (in that order)
+
+And of course, all of this is [configurable](#Configuration)
 
 ### Other commands
 
-- `cricic log`:  shows the result of the last few CI
-  operations and the current commit the server is on.
-- `cricic remove`: Removes all data related to cricic from the repository
+- `cricic log` shows the result of the last few CI operations and the current
+  commit the server is on.
+- `cricic remove` removes all data related to cricic from the repository
 
 Both commands should be run in a cricic reposistory, or supply a directory as
 their first argument.
 
 ### Specifics
 
-When using `init`, two git hooks (`post-receive` and `pre-receive`) are
-set to run the cricic scripts.
-These scripts run the `make` targets configured in 
-`/repo/myproject/cricic/buildfile`.
-The `post-receive` hook runs in the `/repo/myproject/cricic/files` folder which
-contains the git working tree.
+When using `init`, a bare repository is initialised, with two git hooks 
+(`post-receive` and `pre-receive`) set to run the cricic scripts.  
+These scripts run the `make` targets configured in `config.ini`.
 
-The make targets are:
+The `post-receive` hook runs in the working directory, by default 
+`$repo/cricic/files`.
 
-- `pre-receive` runs the `preprocess`
-- `post-receive` runs (in that order) `make test`, `make build` and `make
-  deploy`
+The default make targets are:
+
+- `preprocess` at the pre-receive hook.
+- `test`, `build` and `deploy` at the post-receive hook
 
 Before `post-receive` runs anything, it checks out the files to the `work_dir`.
 Relevant data is logged to `~/myproject/cricic/log`, and information about the
@@ -114,15 +91,22 @@ current branch/commit is saved to `~/myproject/cricic/state`.
 All configuration files use inifile formatting.
 The build file ~~looks like~~ _is_ a Makefile.
 
+Configuration files can be put in three places and will read in order:
+
+1. (global) `/etc/cricic/config.ini`
+2. (global) `~/.config/cricic/config.ini`
+3. (local) `$repository/cricic/config.ini`
+
 ### Global settings
 
-The global configuration (`~/.config/cricic/config.ini`) file contains defaults 
-that can be overridden on a per-repository basis using the local config file.
-By default, it looks like this:
+The global configuration files may contain defaults that can be overridden on 
+a per-repository basis using the local config file.
+The following options are supported for global configuration files:
 
 ```ini
 [general]
-; These settings are used to generate the 'git add' URL
+; These settings are used to generate the 'git add' URL, and are set to the
+; server's hostname username during installation
 remote_name = cricic
 hostname = user@serv
 
@@ -132,8 +116,9 @@ branch = dev
 buildfile = cricic/buildfile
 
 [pre]
-; Make targets
+; Make target for the `pre-receive` hooks, space-separated
 targets = preprocess
+
 ; Decides if `make` should echo its commands
 silent = False
 
@@ -142,30 +127,27 @@ targets = test build deploy
 silent = True
 ```
 
-Config options can be overriden in the local (`/repo/cricic/config.ini`) file.
+Global config options can be overriden in the local config file.
 
 ### Local settings
 
-The local config file (`/repo/cricic/config.ini`) can override all config
-options shown above, and has an additional `repository` section:
+You can use the local configuration file to override global settings, and to set
+the repository-specific working directory.
+If you feel brave, you can set this to your server's document root for example:
 
 ```ini
 [repository]
-deploy_dir = /var/www/myproject
+work_dir = /var/www/myproject
 ```
 
-The `deploy_dir` is the directory where files will be put before the
-`post-receive` hook runs.
+The `ork_dir` is the directory where files will be put before the `post-receive`
+targets are run.
 
 ### Buildfile
 
-The build file defines all build operations.
-To update the buildfile, just add a `.cricic` file to the repository containing
-the buildfile contents.
-It will be automatically copied to `/repo/cricic/buildfile` and will not be
-present in the deployed file (as to not pollute served directories).
-By default, the file contains almost nothing, and it should be configured to
-suit your needs:
+The buildfile defines what actually happens when the repository receives a push.
+By default, it contains very little, and it should be configured to suit your
+needs:
 
 ```make
 .PHONY: preprocess test build deploy
@@ -183,16 +165,21 @@ deploy:
 	echo 'Done deploying'
 ```
 
-#### Example
+#### Updating the buildfile
 
-The default buildfile is not really useful, and only gives feedback for use in
-logs.
+To update the buildfile, just add a `.cricic` file to the repository containing
+the buildfile contents.
+It will be automatically copied to `/repo/cricic/buildfile` and will not be
+present in the deployed file (as to not pollute served directories).
+
+## Applied example
+
 Let's say we want the CI to do the following things:
 
 1. Refuse commits during office hours
 2. Test our new code using python's `unittest`
 3. If successful, install potential new dependencies
-4. Move our code to the `/var/www/app` directory
+4. Move the code to the `/var/www/app`
 
 Our buildfile contains the following:
 ```make
@@ -207,10 +194,10 @@ preprocess:
     fi
 
 test:
-    ./env/bin/python -m unittest discover
+    virtualenv env; ./env/bin/python -m unittest discover
 
 build:
-    ./env/bin/pip install -r requirements.txt
+    virtualenv env; ./env/bin/pip install -r requirements.txt
 
 deploy:
     rsync -r --delete . /var/www/app
