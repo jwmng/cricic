@@ -7,7 +7,7 @@ build:
 	echo "BUILD COMPLETE"
 
 test:
-    echo "TESTED"
+	echo "TESTED"
 
 deploy:
-    echo "DEPLOYED"
+	echo "DEPLOYED"
