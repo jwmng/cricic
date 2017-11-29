@@ -93,9 +93,14 @@ def pre_receive(repository, config, **_):
     # Get targets
     success = _make_targets(repository, confp, 'pre')
     if not success:
-        print("-- Rejecting push")
         _log(repository, 'ERROR', "Pre-receive failed")
+        print("-- Rejecting push")
         sys.exit(1)
+
+
+def update(repository, args, **_):
+    """ Just log the commit hash """
+    _log(repository, 'INFO', "Going to build commit %s" % args[2][:7])
 
 
 def post_receive(repository, config, **_):

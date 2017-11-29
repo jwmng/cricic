@@ -10,7 +10,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from cricic.run import init, info, remove, RunError
-from cricic.hooks import pre_receive, post_receive
+from cricic.hooks import pre_receive, post_receive, update
 
 
 def _err(msg):
@@ -68,11 +68,19 @@ def setup_parser():
         help="run pre-receive hook"
         )
 
+    sp_update = subparser.add_parser(
+        '@update',
+        help="run update hook"
+        )
+
+    sp_update.add_argument('args', nargs=3)
+
     sp_init.set_defaults(func=init)
     sp_info.set_defaults(func=info)
     sp_remove.set_defaults(func=remove)
     sp_hook_pre.set_defaults(func=pre_receive)
     sp_hook_post.set_defaults(func=post_receive)
+    sp_update.set_defaults(func=update)
 
     return aparser
 

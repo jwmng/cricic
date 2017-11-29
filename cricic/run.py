@@ -10,7 +10,7 @@ from cricic.constants import CRICIC_ROOT, CONF_ROOT, CONF_LOCATIONS
 from cricic.helpers import _is_git_repo, _log, _get_log_path
 
 SHELL = '#!/bin/sh\n'
-HOOKS = ('pre-receive', 'post-receive')
+HOOKS = ('pre-receive', 'post-receive', 'update')
 
 
 class RunError(RuntimeError):

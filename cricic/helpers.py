@@ -9,7 +9,8 @@ def _get_log_path(repository):
 
 
 def _is_git_repo(dir_):
-    # First check if it i
+    if not dir_.is_dir():
+        return False
     try:
         sp.check_call(('git', 'rev-parse', '--git-dir'), cwd=dir_,
                       stderr=sp.PIPE, stdout=sp.PIPE)

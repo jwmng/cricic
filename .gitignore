@@ -2,3 +2,7 @@ __pycache__/*
 *.pyc
 test/*
 env/*
+build/*
+dist/*
+conf/config.ini
+Cricic.egg-info
