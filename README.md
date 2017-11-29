@@ -12,7 +12,9 @@ Cricic works with `git` for pushing code and `make` for the intermediate steps.
 
 ## Status
 
-Many features missing, under heavy development.
+- Most things (seem to) work
+- It's probably time to write tests
+- Some edge cases may still throw errors
 
 ## Installation
 
@@ -25,7 +27,7 @@ $ make install
 
 By default, this will copy the config directory to `~/.config/cricic`.
 You can change this by overriding the `CONF_ROOT` variable, however, the program
-will only search in a few locations (see [Configuration](#Configuration)) or a
+will only search in a few locations (see [Configuration](#configuration)) or a
 custom location specified using the `-c` option.
 
 ## Usage
@@ -63,7 +65,7 @@ user@work:~/myproject $ git push serv dev
   - The files are received, and `make test`, `make build` and `make deploy` are
     run (in that order)
 
-And of course, all of this is [configurable](#Configuration)
+And of course, all of this is [configurable](#configuration)
 
 ### Other commands
 
