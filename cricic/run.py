@@ -2,32 +2,15 @@
 Cricic CLI functions
 """
 
-import logging
 import subprocess as sp
 from configparser import ConfigParser
 from pathlib import Path
 
 from cricic.constants import CRICIC_ROOT, CONF_ROOT, CONF_LOCATIONS
+from cricic.helpers import _is_git_repo, _log, _get_log_path
 
 SHELL = '#!/bin/sh\n'
 HOOKS = ('pre-receive', 'post-receive')
-LOG_SUFFIX = 'cricic/cricic.log'
-
-
-def _is_git_repo(dir_):
-    # First check if it i
-    try:
-        sp.check_call(('git', 'rev-parse', '--git-dir'), cwd=dir_,
-                      stderr=sp.PIPE, stdout=sp.PIPE)
-        return True
-    except sp.CalledProcessError:
-        return False
-
-
-def _log(repository, status, msg):
-    log_file = (repository / LOG_SUFFIX).resolve()
-    logging.basicConfig(level=logging.INFO, file=str(log_file))
-    logging.log("[%s] %s", status, msg)
 
 
 class RunError(RuntimeError):
@@ -98,7 +81,7 @@ def init(repository, **_):
           "\tgit push %s %s" % (confp.get('general', 'remote_name'),
                                 confp.get('general', 'branch')))
 
-    _log(repository, 'OK', 'Initialised repository')
+    _log(repository, 'INFO', 'Initialised repository')
 
 
 def info(repository, **_):
@@ -113,26 +96,28 @@ def info(repository, **_):
 
     # Git info
     try:
-        commit_hash, message, ago = sp.check_output((
+        cmd_output = sp.check_output((
             'git', 'log', '--all',
             '--pretty=format:%h|%s|%cr',
             '-n', '1'
-            )).decode('utf-8').split('|')
+            ), cwd=repository.resolve(), stderr=sp.PIPE)
+
+        commit_hash, message, ago = cmd_output.decode('utf-8').split('|')
         print("## Current commit")
-        print("SHA1    : %s" % commit_hash)
-        print("Message : %s" % message)
-        print("Time    : %s" % ago)
+        print("\tSHA1    : %s" % commit_hash)
+        print("\tMessage : %s" % message)
+        print("\tTime    : %s" % ago)
 
     except sp.CalledProcessError:
-        print("\n## Could not load current commit")
+        print("\n## Could not load current commit\n")
 
     # Get log lines
-    log_file = repository / LOG_SUFFIX
+    log_file = _get_log_path(repository)
     if log_file.is_file():
         log_data_lines = log_file.read_text().splitlines()
         print("## Last 5 log lines:")
         for line in log_data_lines[-5:]:
-            print(line)
+            print('\t' + line)
     else:
         print("## Action log ('./cricic/log') not present")
 

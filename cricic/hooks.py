@@ -12,6 +12,7 @@ from configparser import ConfigParser
 from pathlib import Path
 
 from cricic.constants import CONF_LOCATIONS
+from cricic.helpers import _log
 
 
 def _leftpad(raw, chars='\t'):
@@ -64,6 +65,9 @@ def _make_targets(repository, confp, stage, cwd='.', dry_run=False):
             make_proc.check_returncode()
         except sp.CalledProcessError:
             print(_leftpad(stderr, chars='!!  '))
+            _log(repository, 'ERROR',
+                 "Error building target %s" % target.upper())
+
             print("-- Error in stage %s" % target.upper())
             return False
 
@@ -73,13 +77,16 @@ def _make_targets(repository, confp, stage, cwd='.', dry_run=False):
 def pre_receive(repository, config, **_):
     """ Runs when receiving code, before accepting files """
     confp = _get_config(repository, config)
+    _log(repository, 'INFO', "Running pre-receive")
 
     # Sanity checks
     if not Path.is_dir(repository / 'cricic'):
+        _log(repository, 'ERROR', "Not a cricic repository")
         print("-- No cricic repository: did you initialise correctly?")
         sys.exit(1)
 
     if not Path.is_file(repository / 'cricic' / 'buildfile'):
+        _log(repository, 'ERROR', "Buildfile not found")
         print("-- No buildfile: did you initialise correctly?")
         sys.exit(1)
 
@@ -87,6 +94,7 @@ def pre_receive(repository, config, **_):
     success = _make_targets(repository, confp, 'pre')
     if not success:
         print("-- Rejecting push")
+        _log(repository, 'ERROR', "Pre-receive failed")
         sys.exit(1)
 
 
@@ -105,6 +113,7 @@ def post_receive(repository, config, **_):
     # Checkout the files in the work dir
     if not work_dir.is_dir():
         work_dir.mkdir()
+        _log(repository, 'INFO', "Created work dir")
         print("!!  Created work dir %s" % str(work_dir))
 
     sp.run(('git',
@@ -124,6 +133,7 @@ def post_receive(repository, config, **_):
         # Quick dry-run to prevent writing bad buildfile
         valid = _make_targets(repository, confp, 'pre', dry_run=True)
         if not valid:
+            _log(repository, 'INFO', "Buildfile test failed")
             print("!!  Buildfile test failed")
             buildfile.write_bytes(buildfile_old)
             sys.exit(1)
@@ -133,5 +143,8 @@ def post_receive(repository, config, **_):
 
     success = _make_targets(repository, confp, 'post', cwd=work_dir)
     if not success:
+        _log(repository, 'ERROR', "Post-receive failed to complete")
         print("-- Cancelling further steps")
         sys.exit(1)
+
+    _log(repository, 'INFO', "Build succesful")
