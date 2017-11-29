@@ -2,6 +2,7 @@
 Cricic CLI functions
 """
 
+import logging
 import subprocess as sp
 from configparser import ConfigParser
 from pathlib import Path
@@ -10,6 +11,23 @@ from cricic.constants import CRICIC_ROOT, CONF_ROOT, CONF_LOCATIONS
 
 SHELL = '#!/bin/sh\n'
 HOOKS = ('pre-receive', 'post-receive')
+LOG_SUFFIX = 'cricic/cricic.log'
+
+
+def _is_git_repo(dir_):
+    # First check if it i
+    try:
+        sp.check_call(('git', 'rev-parse', '--git-dir'), cwd=dir_,
+                      stderr=sp.PIPE, stdout=sp.PIPE)
+        return True
+    except sp.CalledProcessError:
+        return False
+
+
+def _log(repository, status, msg):
+    log_file = (repository / LOG_SUFFIX).resolve()
+    logging.basicConfig(level=logging.INFO, file=str(log_file))
+    logging.log("[%s] %s", status, msg)
 
 
 class RunError(RuntimeError):
@@ -80,13 +98,47 @@ def init(repository, **_):
           "\tgit push %s %s" % (confp.get('general', 'remote_name'),
                                 confp.get('general', 'branch')))
 
-
-def info(repository, **kwargs):
-    print(repository)
-    print(kwargs)
+    _log(repository, 'OK', 'Initialised repository')
 
 
-def remove(repository, **kwargs):
+def info(repository, **_):
+    """ Show some information about the repository """
+
+    # Quick check
+    if not _is_git_repo(repository.resolve()):
+        print("ERR: %s is not a git repository" % repository)
+        return
+
+    print("# Repository: %s" % repository.resolve().stem)
+
+    # Git info
+    try:
+        commit_hash, message, ago = sp.check_output((
+            'git', 'log', '--all',
+            '--pretty=format:%h|%s|%cr',
+            '-n', '1'
+            )).decode('utf-8').split('|')
+        print("## Current commit")
+        print("SHA1    : %s" % commit_hash)
+        print("Message : %s" % message)
+        print("Time    : %s" % ago)
+
+    except sp.CalledProcessError:
+        print("\n## Could not load current commit")
+
+    # Get log lines
+    log_file = repository / LOG_SUFFIX
+    if log_file.is_file():
+        log_data_lines = log_file.read_text().splitlines()
+        print("## Last 5 log lines:")
+        for line in log_data_lines[-5:]:
+            print(line)
+    else:
+        print("## Action log ('./cricic/log') not present")
+
+
+def remove(repository, **_):
+    """ Remove cricic-related files """
     remove_confirm = input("Remove cricic files? [y/n] ")
     remove_repo = remove_confirm.lower() in ('y', 'yes')
     if not remove_repo:
@@ -94,6 +146,12 @@ def remove(repository, **kwargs):
 
     repo_conf_dir = repository / 'cricic'
 
-    [(repository / 'hooks' / hook).unlink() for hook in HOOKS]
-    [f.unlink() for f in repo_conf_dir.glob('*')]
+    # Remove hooks
+    for hook in HOOKS:
+        (repository / 'hooks' / hook).unlink()
+
+    # Remove conf dir contents
+    for file_ in repo_conf_dir.glob('*'):
+        file_.unlink()
+
     repo_conf_dir.rmdir()
