@@ -15,5 +15,5 @@ targets = preprocess
 silent = False
 
 [post]
-targets = test build deploy
+targets = build test deploy
 silent = True

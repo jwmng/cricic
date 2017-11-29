@@ -62,7 +62,7 @@ user@work:~/myproject $ git push serv dev
 4. Watch magic happen:
 
   - `make preprocess` is run and the push is rejected if this fails
-  - The files are received, and `make test`, `make build` and `make deploy` are
+  - The files are received, and `make build`, `make test` and `make deploy` are
     run (in that order)
 
 And of course, all of this is [configurable](#configuration)
@@ -88,7 +88,7 @@ The `post-receive` hook runs in the working directory, by default
 The default make targets are:
 
 - `preprocess` at the pre-receive hook.
-- `test`, `build` and `deploy` at the post-receive hook
+- `build`, `test` and `deploy` at the post-receive hook
 
 Before `post-receive` runs anything, it checks out the files to the `work_dir`.
 Relevant data is logged to `~/myproject/cricic/log`, and information about the
